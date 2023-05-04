@@ -1,0 +1,3 @@
+setup:
+  project: meta-service
+  config: dev

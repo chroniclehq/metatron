@@ -1,0 +1,6 @@
+__generated__
+generated
+.cache
+.next
+coverage
+node_modules

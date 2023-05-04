@@ -1,0 +1,46 @@
+{
+  "name": "metatron",
+  "version": "1.0.0",
+  "description": "API server for fetching metadata from URLs",
+  "type": "module",
+  "engines": {
+    "node": "16.x"
+  },
+  "scripts": {
+    "clean": "shx rm -rf dist/",
+    "prebuild": "npm run clean",
+    "build": "tsc",
+    "start": "cd dist && node index.js",
+    "watch": "tsc -w",
+    "dev": "doppler run -- npm run start"
+  },
+  "keywords": [
+    "meta",
+    "graphql",
+    "embed",
+    "open-graph"
+  ],
+  "author": "harris@chroniclehq.com",
+  "license": "ISC",
+  "dependencies": {
+    "@apollo/server": "^4.7.0",
+    "@graphql-tools/load-files": "^6.6.1",
+    "@graphql-tools/merge": "^8.4.1",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "got": "^12.6.0",
+    "graphql": "^16.6.0",
+    "node-html-parser": "^6.1.5",
+    "redis": "^4.6.6"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.17",
+    "@types/node": "^18.16.3",
+    "nodemon": "^2.0.22",
+    "prettier": "2.8.8",
+    "shx": "^0.3.4",
+    "typescript": "^5.0.4"
+  }
+}

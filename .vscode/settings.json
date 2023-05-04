@@ -1,0 +1,8 @@
+{
+  "editor.tabSize": 2,
+  "editor.rulers": [80, 150],
+  "search.exclude": {
+    "dist/**/*.*": true
+  },
+  "typescript.preferences.importModuleSpecifier": "relative"
+}
