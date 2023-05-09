@@ -1,83 +1,12 @@
 import express, { Request } from 'express';
-import got from 'got';
-import { parse } from 'node-html-parser';
-import { getRelativeAssetUrl, isValidUrl } from '../utils/index.js';
-
-const fetchHtml = async (url: string) => {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 5000); // timeout if it takes longer than 5 seconds
-  return await got(url, {
-    signal: controller.signal,
-    headers: {
-      'User-Agent': 'chronicle-bot/1.0',
-    },
-  }).then((res) => {
-    clearTimeout(timeoutId);
-    return res.body;
-  });
-};
-
-const extractMeta = (html: string) => {
-  const ast = parse(html);
-  const metaTags = ast.querySelectorAll('meta').map(({ attributes }) => {
-    const property = attributes.property || attributes.name || attributes.href;
-    return {
-      property,
-      content: attributes.content,
-    };
-  });
-  const title = ast.querySelector('title')?.innerText;
-  const linkTags = ast.querySelectorAll('link').map(({ attributes }) => {
-    const { rel, href } = attributes;
-    return {
-      rel,
-      href,
-    };
-  });
-
-  return { title, metaTags, linkTags };
-};
-
-const getMetaTags = async (url: string) => {
-  const html = await fetchHtml(url);
-  const { metaTags, title: titleTag, linkTags } = extractMeta(html);
-
-  let object: any = {};
-
-  for (let k in metaTags) {
-    let { property, content } = metaTags[k];
-
-    property && (object[property] = content);
-  }
-
-  for (let m in linkTags) {
-    let { rel, href } = linkTags[m];
-
-    rel && (object[rel] = href);
-  }
-
-  const title = object['og:title'] || object['twitter:title'] || titleTag;
-
-  const description =
-    object['description'] ||
-    object['og:description'] ||
-    object['twitter:description'];
-
-  const image =
-    object['og:image'] ||
-    object['twitter:image'] ||
-    object['image_src'] ||
-    object['icon'] ||
-    object['shortcut icon'];
-
-  return {
-    title,
-    description,
-    image: getRelativeAssetUrl(url, image),
-  };
-};
+import { isValidUrl } from '../utils/index.js';
+import Figma from '../adapters/figma.js';
+import Generic from '../adapters/generic.js';
+import Twitter from '../adapters/twitter.js';
 
 const router = express.Router();
+
+const providers = [Figma, Twitter, Generic];
 
 type QueryParams = {
   url: string;
@@ -87,10 +16,11 @@ type QueryParams = {
 router.get('/', async (req: Request<{}, {}, {}, QueryParams>, res) => {
   const { url } = req.query;
   if (!isValidUrl(url)) res.status(500).end();
+  let meta = {};
 
-  const metaJson = await getMetaTags(url);
-
-  res.json(metaJson);
+  const provider = providers.find((p) => p.isMatch(url));
+  meta = await new provider(url).fetchMeta();
+  res.status(200).json(meta);
 });
 
 export default router;

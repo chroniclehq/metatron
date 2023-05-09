@@ -12,7 +12,7 @@
     "build": "tsc",
     "start": "cd dist && node index.js",
     "watch": "tsc -w",
-    "dev": "doppler run -- npm run start"
+    "dev": "doppler run -- nodemon dist/index.js"
   },
   "keywords": [
     "meta",
@@ -32,6 +32,7 @@
     "express": "^4.18.2",
     "got": "^12.6.0",
     "graphql": "^16.6.0",
+    "lodash-es": "^4.17.21",
     "node-html-parser": "^6.1.5",
     "redis": "^4.6.6"
   },
