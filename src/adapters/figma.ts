@@ -11,6 +11,7 @@ export default class Figma {
   url: string;
 
   constructor(url: string) {
+    console.log(`Fetching via Figma`);
     this.url = url;
   }
 
