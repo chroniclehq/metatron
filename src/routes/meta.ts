@@ -19,10 +19,10 @@ router.get('/', async (req: Request<{}, {}, {}, QueryParams>, res) => {
 
   if (!isValidUrl(url)) res.status(500).end();
 
-  const provider = providers.find((p) => p.isMatch(url));
+  const Provider = providers.find((p) => p.isMatch(url));
 
   try {
-    const meta = await new provider(url).fetchMeta();
+    const meta = await new Provider(url).fetchMeta();
 
     CacheManager.getInstance().set(url, JSON.stringify(meta));
 
