@@ -24,7 +24,7 @@ export default class CacheManager {
     return await this.client.get(key);
   }
   async set(key: string, value: string) {
-    await this.client.set(key, value, { EX: 3 * 60 });
+    await this.client.set(key, value, { EX: 2 * 60 });
   }
   async remove(key: string) {
     return this.client.del(key);

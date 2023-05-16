@@ -39,6 +39,32 @@ const fetchHtml = async (url: string) => {
   });
 };
 
+const fetchFavicon = async (url: string) => {
+  const faviconUrl = new URL(url).origin + '/favicon.ico';
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+  return await got(faviconUrl, {
+    signal: controller.signal,
+    headers: {
+      'User-Agent': 'chronicle-bot/1.0',
+    },
+  })
+    .then((res) => {
+      clearTimeout(timeoutId);
+      console.log(faviconUrl, res.statusCode, res.headers);
+      if (
+        res.statusCode === 200 &&
+        res.headers['content-type'].startsWith('image/')
+      ) {
+        return faviconUrl;
+      } else return null;
+    })
+    .catch(() => {
+      return null;
+    });
+};
+
 export default class Generic {
   url: string;
 
@@ -56,7 +82,11 @@ export default class Generic {
 
   async fetchMeta() {
     try {
-      const html = await fetchHtml(this.url);
+      const [html, faviconUrl] = await Promise.all([
+        fetchHtml(this.url),
+        fetchFavicon(this.url),
+      ]);
+
       const { metaTags, title: titleTag, linkTags } = extractMeta(html);
 
       let object: any = {};
@@ -79,17 +109,16 @@ export default class Generic {
         object['twitter:description'];
 
       const image =
-        object['og:image'] ||
-        object['twitter:image'] ||
-        object['image_src'] ||
-        object['icon'] ||
-        object['shortcut icon'];
+        object['og:image'] || object['twitter:image'] || object['image_src'];
+
+      const favicon = object['icon'] || object['shortcut icon'] || faviconUrl;
 
       return Object.assign(
         {
           title,
           description,
           image: getRelativeAssetUrl(this.url, image),
+          favicon: getRelativeAssetUrl(this.url, favicon),
         },
         this.addAdditionalContext(object)
       );

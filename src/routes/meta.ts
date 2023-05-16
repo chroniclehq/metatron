@@ -24,6 +24,7 @@ router.get('/', async (req: Request<{}, {}, {}, QueryParams>, res) => {
   try {
     const meta = await new Provider(url).fetchMeta();
 
+    console.log(`[cache]: Saving data for ${url} in cache`);
     CacheManager.getInstance().set(url, JSON.stringify(meta));
 
     res.status(200).json(meta);
