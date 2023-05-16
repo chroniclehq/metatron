@@ -3,6 +3,8 @@ import express, { Express, Request, Response } from 'express';
 import CacheMiddleware from './middleware/cache.js';
 import MetaRouter from './routes/meta.js';
 import CacheManager from './services/cache.js';
+import cors from 'cors';
+import { ALLOWED_ORIGINS } from './utils/index.js';
 
 dotenv.config();
 
@@ -11,6 +13,15 @@ async function main() {
 
   const app: Express = express();
   const port = process.env.PORT;
+
+  app.use(
+    cors({
+      origin: ALLOWED_ORIGINS,
+      credentials: true,
+      methods: ['GET'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+    })
+  );
 
   app.use(CacheMiddleware);
 
