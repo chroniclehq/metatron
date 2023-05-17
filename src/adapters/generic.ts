@@ -97,7 +97,12 @@ export default class Generic {
 
       for (let m in linkTags) {
         let { rel, href } = linkTags[m];
-        rel && (object[rel] = href);
+        // Don't override existing properties because the first is
+        // usually working. TODO @harris is there a fast way to check
+        // if links are working
+        if (rel && !object[rel]) {
+          object[rel] = href;
+        }
       }
 
       const title = object['og:title'] || object['twitter:title'] || titleTag;
