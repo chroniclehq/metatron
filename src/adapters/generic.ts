@@ -35,7 +35,7 @@ const fetchHtml = async (url: string) => {
     },
   }).then((res) => {
     clearTimeout(timeoutId);
-    return res.body;
+    return { html: res.body, url: res.url };
   });
 };
 
@@ -52,7 +52,6 @@ const fetchFavicon = async (url: string) => {
   })
     .then((res) => {
       clearTimeout(timeoutId);
-      console.log(faviconUrl, res.statusCode, res.headers);
       if (
         res.statusCode === 200 &&
         res.headers['content-type'].startsWith('image/')
@@ -82,7 +81,7 @@ export default class Generic {
 
   async fetchMeta() {
     try {
-      const [html, faviconUrl] = await Promise.all([
+      const [{ html, url: resolvedUrl }, faviconUrl] = await Promise.all([
         fetchHtml(this.url),
         fetchFavicon(this.url),
       ]);
@@ -117,8 +116,8 @@ export default class Generic {
         {
           title,
           description,
-          image: getRelativeAssetUrl(this.url, image),
-          favicon: getRelativeAssetUrl(this.url, favicon),
+          image: getRelativeAssetUrl(resolvedUrl, image),
+          favicon: getRelativeAssetUrl(resolvedUrl, favicon),
         },
         this.addAdditionalContext(object)
       );
