@@ -2,7 +2,7 @@ import got from 'got';
 import { parse } from 'node-html-parser';
 import { getRelativeAssetUrl, isValidUrl } from '../utils/index.js';
 
-const extractMeta = (html: string) => {
+export const extractMeta = (html: string) => {
   const ast = parse(html);
 
   const metaTags = ast.querySelectorAll('meta').map(({ attributes }) => {
@@ -25,7 +25,7 @@ const extractMeta = (html: string) => {
   return { title, metaTags, linkTags };
 };
 
-const fetchHtml = async (url: string) => {
+export const fetchHtml = async (url: string) => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 5000); // timeout if it takes longer than 5 seconds
   return await got(url, {
@@ -39,7 +39,7 @@ const fetchHtml = async (url: string) => {
   });
 };
 
-const fetchFavicon = async (url: string) => {
+export const fetchFavicon = async (url: string) => {
   const faviconUrl = new URL(url).origin + '/favicon.ico';
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 5000);
