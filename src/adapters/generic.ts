@@ -75,7 +75,7 @@ export default class Generic {
     return isValidUrl(url);
   }
 
-  addAdditionalContext(data: any) {
+  addAdditionalContext(meta: any, raw: any) {
     return {};
   }
 
@@ -88,11 +88,11 @@ export default class Generic {
 
       const { metaTags, title: titleTag, linkTags } = extractMeta(html);
 
-      let object: any = {};
+      let raw: any = {};
 
       for (let k in metaTags) {
         let { property, content } = metaTags[k];
-        property && (object[property] = content);
+        property && (raw[property] = content);
       }
 
       for (let m in linkTags) {
@@ -100,32 +100,30 @@ export default class Generic {
         // Don't override existing properties because the first is
         // usually working. TODO @harris is there a fast way to check
         // if links are working
-        if (rel && !object[rel]) {
-          object[rel] = href;
+        if (rel && !raw[rel]) {
+          raw[rel] = href;
         }
       }
 
-      const title = object['og:title'] || object['twitter:title'] || titleTag;
+      const title = raw['og:title'] || raw['twitter:title'] || titleTag;
 
       const description =
-        object['description'] ||
-        object['og:description'] ||
-        object['twitter:description'];
+        raw['description'] ||
+        raw['og:description'] ||
+        raw['twitter:description'];
 
-      const image =
-        object['og:image'] || object['twitter:image'] || object['image_src'];
+      const image = raw['og:image'] || raw['twitter:image'] || raw['image_src'];
 
-      const favicon = object['icon'] || object['shortcut icon'] || faviconUrl;
+      const favicon = raw['icon'] || raw['shortcut icon'] || faviconUrl;
 
-      return Object.assign(
-        {
-          title,
-          description,
-          image: getRelativeAssetUrl(resolvedUrl, image),
-          favicon: getRelativeAssetUrl(resolvedUrl, favicon),
-        },
-        this.addAdditionalContext(object)
-      );
+      const metadata = {
+        title,
+        description,
+        image: getRelativeAssetUrl(resolvedUrl, image),
+        favicon: getRelativeAssetUrl(resolvedUrl, favicon),
+      };
+
+      return Object.assign(metadata, this.addAdditionalContext(metadata, raw));
     } catch (error) {
       console.error(error);
       return {};
