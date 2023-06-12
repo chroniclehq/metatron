@@ -1,5 +1,6 @@
 import got from 'got';
 import { pick, mapKeys, camelCase } from 'lodash-es';
+import { parse } from 'node-html-parser';
 
 const URL_REGEX =
   /https:\/\/([\w\.-]+\.)?figma.com\/(file|proto)\/([0-9a-zA-Z]{22,128})(?:\/.*)?$/;
@@ -45,8 +46,14 @@ export default class Figma {
       });
 
       const meta = mapKeys(pick(res, props), (_, k) => camelCase(k));
+      let embedUrl = null;
+      try {
+        embedUrl = parse(res['html']).firstChild['attributes']['src'] || null;
+      } catch (error) {
+        console.error(`Error while parsing`, error);
+      }
 
-      return meta;
+      return { ...meta, embedUrl };
     } catch (error) {
       console.error(error);
       return {};
