@@ -98,8 +98,8 @@ export default class Generic {
       for (let m in linkTags) {
         let { rel, href } = linkTags[m];
         // Don't override existing properties because the first is
-        // usually working. TODO @harris is there a fast way to check
-        // if links are working
+        // usually working.
+        // TODO @harris is there a fast way to check if links are working?
         if (rel && !raw[rel]) {
           raw[rel] = href;
         }

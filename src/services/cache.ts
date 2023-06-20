@@ -20,12 +20,14 @@ export default class CacheManager {
     await this.client.disconnect();
   }
 
-  async get(key: string) {
-    return await this.client.get(key);
+  async get(route: string, key: string) {
+    return await this.client.get(`${route}::${key}`);
   }
-  async set(key: string, value: string) {
-    await this.client.set(key, value, { EX: 2 * 60 });
+
+  async set(route: string, key: string, value: string) {
+    await this.client.set(`${route}::${key}`, value, { EX: 2 * 60 });
   }
+
   async remove(key: string) {
     return this.client.del(key);
   }

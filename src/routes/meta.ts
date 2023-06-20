@@ -6,7 +6,7 @@ import Twitter from '../adapters/twitter.js';
 import CacheManager from '../services/cache.js';
 import { isValidUrl } from '../utils/index.js';
 
-const router = express.Router();
+const MetaRouter = express.Router();
 
 const providers = [Figma, Twitter, Generic];
 
@@ -15,7 +15,7 @@ type QueryParams = {
   force: boolean;
 };
 
-router.get('/', async (req: Request<{}, {}, {}, QueryParams>, res) => {
+MetaRouter.get('/', async (req: Request<{}, {}, {}, QueryParams>, res) => {
   const { url } = req.query;
 
   if (!isValidUrl(url)) res.status(500).end();
@@ -27,7 +27,7 @@ router.get('/', async (req: Request<{}, {}, {}, QueryParams>, res) => {
 
     if (!isEmpty(meta)) {
       console.log(`[cache]: Saving data for ${url} in cache`);
-      CacheManager.getInstance().set(url, JSON.stringify(meta));
+      CacheManager.getInstance().set('meta', url, JSON.stringify(meta));
     }
 
     res.status(200).json(meta);
@@ -36,4 +36,4 @@ router.get('/', async (req: Request<{}, {}, {}, QueryParams>, res) => {
   }
 });
 
-export default router;
+export default MetaRouter;
