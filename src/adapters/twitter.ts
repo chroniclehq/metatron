@@ -1,6 +1,6 @@
 import { isEmpty } from 'lodash-es';
-import { getRelativeAssetUrl } from '../utils/index.js';
-import Generic, { extractMeta, fetchHtml } from './generic.js';
+import { extractMeta, getRelativeAssetUrl, probe } from '../utils/index.js';
+import Generic from './generic.js';
 
 const URL_REGEX = /https?:\/\/twitter.com\/(\S+)\/(status)\/(\S+)$/g;
 const AVATAR_REGEX = /profile_images/;
@@ -24,7 +24,7 @@ export default class Twitter extends Generic {
 
   async fetchProfile(username: string) {
     try {
-      const { html } = await fetchHtml(`https://twitter.com/${username}`);
+      const { body: html } = await probe(`https://twitter.com/${username}`);
       const { metaTags } = extractMeta(html);
       let raw: any = {};
       for (let k in metaTags) {
@@ -68,7 +68,7 @@ export default class Twitter extends Generic {
 
   async fetchMeta() {
     try {
-      const { html, url: resolvedUrl } = await fetchHtml(this.url);
+      const { body: html, url: resolvedUrl } = await probe(this.url);
       const { metaTags, title: titleTag, linkTags } = extractMeta(html);
 
       let raw: any = {};

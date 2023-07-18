@@ -1,68 +1,13 @@
-import got from 'got';
-import { parse } from 'node-html-parser';
-import { getRelativeAssetUrl, isValidUrl } from '../utils/index.js';
-
-export const extractMeta = (html: string) => {
-  const ast = parse(html);
-
-  const metaTags = ast.querySelectorAll('meta').map(({ attributes }) => {
-    const property = attributes.property || attributes.name || attributes.href;
-    return {
-      property,
-      content: attributes.content,
-    };
-  });
-
-  const title = ast.querySelector('title')?.innerText;
-  const linkTags = ast.querySelectorAll('link').map(({ attributes }) => {
-    const { rel, href } = attributes;
-    return {
-      rel,
-      href,
-    };
-  });
-
-  return { title, metaTags, linkTags };
-};
-
-export const fetchHtml = async (url: string) => {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 5000); // timeout if it takes longer than 5 seconds
-  return await got(url, {
-    signal: controller.signal,
-    headers: {
-      'User-Agent': 'chronicle-bot/1.0',
-    },
-  }).then((res) => {
-    clearTimeout(timeoutId);
-    return { html: res.body, url: res.url };
-  });
-};
-
-export const fetchFavicon = async (url: string) => {
-  const faviconUrl = new URL(url).origin + '/favicon.ico';
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-  return await got(faviconUrl, {
-    signal: controller.signal,
-    headers: {
-      'User-Agent': 'chronicle-bot/1.0',
-    },
-  })
-    .then((res) => {
-      clearTimeout(timeoutId);
-      if (
-        res.statusCode === 200 &&
-        res.headers['content-type'].startsWith('image/')
-      ) {
-        return faviconUrl;
-      } else return null;
-    })
-    .catch(() => {
-      return null;
-    });
-};
+import { isEmpty } from 'lodash-es';
+import {
+  extractMeta,
+  fetchFavicon,
+  probe,
+  getRelativeAssetUrl,
+  isValidUrl,
+  findOEmbedUrl,
+  resolveOEmbed,
+} from '../utils/index.js';
 
 export default class Generic {
   url: string;
@@ -81,10 +26,8 @@ export default class Generic {
 
   async fetchMeta() {
     try {
-      const [{ html, url: resolvedUrl }, faviconUrl] = await Promise.all([
-        fetchHtml(this.url),
-        fetchFavicon(this.url),
-      ]);
+      const [{ body: html, url: resolvedUrl, headers }, faviconUrl] =
+        await Promise.all([probe(this.url), fetchFavicon(this.url)]);
 
       const { metaTags, title: titleTag, linkTags } = extractMeta(html);
 
@@ -122,6 +65,18 @@ export default class Generic {
         image: getRelativeAssetUrl(resolvedUrl, image),
         favicon: getRelativeAssetUrl(resolvedUrl, favicon),
       };
+
+      if (isEmpty(headers['x-frame-options'])) {
+        metadata['iframe'] = resolvedUrl;
+      } else {
+        const oEmbedUrl = findOEmbedUrl(html);
+        if (oEmbedUrl) {
+          const iframeUrl = await resolveOEmbed(oEmbedUrl);
+          if (!isEmpty(iframeUrl)) {
+            metadata['iframe'] = iframeUrl;
+          }
+        }
+      }
 
       return Object.assign(metadata, this.addAdditionalContext(metadata, raw));
     } catch (error) {

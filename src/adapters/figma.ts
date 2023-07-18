@@ -26,7 +26,7 @@ export default class Figma {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-    const props = [
+    const keys = [
       'title',
       'provider_name',
       'folder_name',
@@ -36,7 +36,7 @@ export default class Figma {
     ];
 
     try {
-      const res: JSON = await got(oembedUrl.toString(), {
+      const response: JSON = await got(oembedUrl.toString(), {
         signal: controller.signal,
         headers: {
           'User-Agent': 'chronicle-bot/1.0',
@@ -45,12 +45,17 @@ export default class Figma {
         responseType: 'json',
       });
 
-      const meta = mapKeys(pick(res, props), (_, k) => camelCase(k));
+      const meta = mapKeys(pick(response, keys), (_, k) => camelCase(k));
+
       let embedUrl = null;
       try {
-        embedUrl = parse(res['html']).firstChild['attributes']['src'] || null;
+        embedUrl =
+          parse(response['html']).firstChild['attributes']['src'] || null;
+        if (embedUrl) {
+          meta['iframe'] = embedUrl;
+        }
       } catch (error) {
-        console.error(`Error while parsing`, error);
+        console.error(`Error while parsing html for embeddable url`, error);
       }
 
       return { ...meta, embedUrl };
