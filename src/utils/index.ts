@@ -1,4 +1,6 @@
 import got from 'got';
+import { IncomingHttpHeaders } from 'http';
+import { isEmpty } from 'lodash-es';
 import { parse } from 'node-html-parser';
 
 export async function probe(url: string) {
@@ -100,6 +102,31 @@ export async function resolveOEmbed(url: string) {
   } finally {
     clearTimeout(timeoutId);
   }
+}
+
+const X_FRAME_OPTIONS = 'x-frame-options';
+const CONTENT_SECURITY_POLICY = 'content-security-policy';
+
+export function allowsEmbed(headers: IncomingHttpHeaders) {
+  // XframeOptions should either be not set or be '*'
+  // (wildcard is non-standard but miro uses it)
+  // Move this to the adapter level so that we have more control with what we allow
+  const hasXFrameOpt =
+    !isEmpty(headers[X_FRAME_OPTIONS]) && headers[X_FRAME_OPTIONS] !== '*';
+
+  // If CSP exists check if there is a frame-ancestors setting. frame-ancestors works like
+  // x-frame-opt: DENY or ALLOW-ORIGIN so assume it is blocked if this exists.
+  const hasFrameCSP = headers[CONTENT_SECURITY_POLICY]
+    ? headers[CONTENT_SECURITY_POLICY].includes('frame-ancestors')
+    : false;
+
+  const isAllowed = !hasXFrameOpt && !hasFrameCSP;
+
+  if (!isAllowed) {
+    console.debug({ hasFrameCSP, hasXFrameOpt });
+  }
+
+  return isAllowed;
 }
 
 export const isValidUrl = (url: string) => {

@@ -1,11 +1,12 @@
 import { isEmpty } from 'lodash-es';
 import {
+  allowsEmbed,
   extractMeta,
   fetchFavicon,
-  probe,
+  findOEmbedUrl,
   getRelativeAssetUrl,
   isValidUrl,
-  findOEmbedUrl,
+  probe,
   resolveOEmbed,
 } from '../utils/index.js';
 
@@ -66,7 +67,7 @@ export default class Generic {
         favicon: getRelativeAssetUrl(resolvedUrl, favicon),
       };
 
-      if (isEmpty(headers['x-frame-options'])) {
+      if (allowsEmbed(headers)) {
         metadata['iframe'] = resolvedUrl;
       } else {
         const oEmbedUrl = findOEmbedUrl(html);

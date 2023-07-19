@@ -2,6 +2,7 @@ import express, { Request } from 'express';
 import { isEmpty } from 'lodash-es';
 import CacheManager from '../services/cache.js';
 import {
+  allowsEmbed,
   findOEmbedUrl,
   isValidUrl,
   probe,
@@ -27,7 +28,7 @@ EmbedRouter.get(
       const probeResponse = await probe(url);
 
       if (probeResponse.ok) {
-        if (isEmpty(probeResponse.headers['x-frame-options'])) {
+        if (allowsEmbed(probeResponse.headers)) {
           data['allowed'] = true;
         } else {
           const oEmbedUrl = findOEmbedUrl(probeResponse.body);
