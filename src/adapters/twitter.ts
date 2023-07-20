@@ -1,6 +1,7 @@
 import { isEmpty } from 'lodash-es';
 import { extractMeta, getRelativeAssetUrl, probe } from '../utils/index.js';
 import Generic from './generic.js';
+import { IncomingHttpHeaders } from 'http';
 
 const URL_REGEX = /https?:\/\/twitter.com\/(\S+)\/(status)\/(\S+)$/g;
 const AVATAR_REGEX = /profile_images/;
@@ -20,7 +21,9 @@ export default class Twitter extends Generic {
     return new RegExp(URL_REGEX).test(url);
   }
 
-  addAdditionalContext(meta: any, raw: any): any {}
+  static canEmbed(url: string, headers: IncomingHttpHeaders): boolean {
+    return false;
+  }
 
   async fetchProfile(username: string) {
     try {
@@ -115,7 +118,7 @@ export default class Twitter extends Generic {
         isProtected,
       };
 
-      return Object.assign(metadata, this.addAdditionalContext(metadata, raw));
+      return metadata;
     } catch (error) {
       console.error(error);
       return {};

@@ -2,7 +2,6 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import express, { Express, Request, Response } from 'express';
 import CacheMiddleware from './middleware/cache.js';
-import EmbedRouter from './routes/embed.js';
 import MetaRouter from './routes/meta.js';
 import CacheManager from './services/cache.js';
 import { ALLOWED_ORIGINS } from './utils/index.js';
@@ -31,7 +30,6 @@ async function main() {
   });
 
   app.use('/meta', MetaRouter);
-  app.use('/embed', EmbedRouter);
 
   app.listen(port, () => {
     console.log(`[server]: Server is running at http://localhost:${port}`);

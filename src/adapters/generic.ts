@@ -1,6 +1,5 @@
 import { isEmpty } from 'lodash-es';
 import {
-  allowsEmbed,
   extractMeta,
   fetchFavicon,
   findOEmbedUrl,
@@ -9,6 +8,11 @@ import {
   probe,
   resolveOEmbed,
 } from '../utils/index.js';
+import { IncomingHttpHeaders } from 'http';
+import {
+  CONTENT_SECURITY_POLICY,
+  X_FRAME_OPTIONS,
+} from '../utils/constants.js';
 
 export default class Generic {
   url: string;
@@ -21,8 +25,26 @@ export default class Generic {
     return isValidUrl(url);
   }
 
-  addAdditionalContext(meta: any, raw: any) {
-    return {};
+  static canEmbed(url: string, headers: IncomingHttpHeaders) {
+    // XframeOptions should either be not set or be '*'
+    // (wildcard is non-standard but miro uses it)
+    // Move this to the adapter level so that we have more control with what we allow
+    const hasXFrameOpt =
+      !isEmpty(headers[X_FRAME_OPTIONS]) && headers[X_FRAME_OPTIONS] !== '*';
+
+    // If CSP exists check if there is a frame-ancestors setting. frame-ancestors works like
+    // x-frame-opt: DENY or ALLOW-ORIGIN so assume it is blocked if this exists.
+    const hasFrameCSP = headers[CONTENT_SECURITY_POLICY]
+      ? headers[CONTENT_SECURITY_POLICY].includes('frame-ancestors')
+      : false;
+
+    const isAllowed = !hasXFrameOpt && !hasFrameCSP;
+
+    if (!isAllowed) {
+      console.debug({ hasFrameCSP, hasXFrameOpt });
+    }
+
+    return isAllowed;
   }
 
   async fetchMeta() {
@@ -67,7 +89,7 @@ export default class Generic {
         favicon: getRelativeAssetUrl(resolvedUrl, favicon),
       };
 
-      if (allowsEmbed(headers)) {
+      if (Generic.canEmbed(resolvedUrl, headers)) {
         metadata['iframe'] = resolvedUrl;
       } else {
         const oEmbedUrl = findOEmbedUrl(html);
@@ -79,7 +101,7 @@ export default class Generic {
         }
       }
 
-      return Object.assign(metadata, this.addAdditionalContext(metadata, raw));
+      return metadata;
     } catch (error) {
       console.error(error);
       return {};
