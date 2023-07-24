@@ -41,6 +41,8 @@ export default class Figma extends Generic {
     const oembedUrl = new URL(OEMBED_URL);
 
     if (Figma.canEmbed(this.url, {})) {
+      // In case the embed-url is directly sent, take the actual url and
+      // fetch meta for that
       const fileUrl = new URL(this.url).searchParams.get('url');
       oembedUrl.search = `?url=${fileUrl}`;
       console.log(
