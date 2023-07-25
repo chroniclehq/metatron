@@ -5,12 +5,14 @@ import {
   findOEmbedUrl,
   getRelativeAssetUrl,
   isValidUrl,
+  parseHeaderValue,
   probe,
   resolveOEmbed,
 } from '../utils/index.js';
 import { IncomingHttpHeaders } from 'http';
 import {
   CONTENT_SECURITY_POLICY,
+  FRAME_ANCESTORS,
   X_FRAME_OPTIONS,
 } from '../utils/constants.js';
 
@@ -29,19 +31,29 @@ export default class Generic {
     // XframeOptions should either be not set or be '*'
     // (wildcard is non-standard but miro uses it)
     // Move this to the adapter level so that we have more control with what we allow
-    const hasXFrameOpt =
-      !isEmpty(headers[X_FRAME_OPTIONS]) && headers[X_FRAME_OPTIONS] !== '*';
+    const isPremissiveXFrame =
+      isEmpty(headers[X_FRAME_OPTIONS]) || headers[X_FRAME_OPTIONS] === '*';
 
     // If CSP exists check if there is a frame-ancestors setting. frame-ancestors works like
     // x-frame-opt: DENY or ALLOW-ORIGIN so assume it is blocked if this exists.
+    let isPermissiveCSP = true;
+
     const hasFrameCSP = headers[CONTENT_SECURITY_POLICY]
-      ? headers[CONTENT_SECURITY_POLICY].includes('frame-ancestors')
+      ? headers[CONTENT_SECURITY_POLICY].includes(FRAME_ANCESTORS)
       : false;
 
-    const isAllowed = !hasXFrameOpt && !hasFrameCSP;
+    if (hasFrameCSP) {
+      const frameAncestors = (parseHeaderValue(
+        headers[CONTENT_SECURITY_POLICY] as string
+      ) || {})[FRAME_ANCESTORS].join().trim();
+
+      isPermissiveCSP = frameAncestors === '*';
+    }
+
+    const isAllowed = isPremissiveXFrame && isPermissiveCSP;
 
     if (!isAllowed) {
-      console.debug({ hasFrameCSP, hasXFrameOpt });
+      console.debug({ isPremissiveXFrame, isPermissiveCSP, hasFrameCSP });
     }
 
     return isAllowed;
