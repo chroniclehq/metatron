@@ -1,6 +1,7 @@
 import redis, { RedisClientType } from 'redis';
 
 const REDIS_URL = process.env.REDIS_URL;
+const CHRON_ENV = process.env.CHRON_ENV;
 
 export default class CacheManager {
   static instance: CacheManager;
@@ -21,11 +22,13 @@ export default class CacheManager {
   }
 
   async get(route: string, key: string) {
-    return await this.client.get(`${route}::${key}`);
+    return await this.client.get(`${CHRON_ENV}:${route}::${key}`);
   }
 
   async set(route: string, key: string, value: string) {
-    await this.client.set(`${route}::${key}`, value, { EX: 2 * 60 });
+    await this.client.set(`${CHRON_ENV}:${route}::${key}`, value, {
+      EX: 2 * 60,
+    });
   }
 
   async remove(key: string) {

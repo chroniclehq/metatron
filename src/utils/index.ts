@@ -140,3 +140,14 @@ export const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS?.split(',').map(
   'https://h.chroniclehq.com',
   'https://studio.apollographql.com',
 ];
+
+export function parseHeaderValue(input: string): Record<string, string[]> {
+  const value: Record<string, string[]> = Object.fromEntries(
+    input.split(';').map((v) => {
+      const [key, ...values] = v.trim().split(' ');
+      return [key, values];
+    })
+  );
+
+  return value;
+}
