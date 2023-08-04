@@ -4,5 +4,6 @@
   "search.exclude": {
     "dist/**/*.*": true
   },
-  "typescript.preferences.importModuleSpecifier": "relative"
+  "javascript.suggest.autoImports": true,
+  "javascript.preferences.importModuleSpecifier": "relative"
 }

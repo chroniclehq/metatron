@@ -36,7 +36,7 @@ export const fetchFavicon = async (url: string) => {
       clearTimeout(timeoutId);
       if (
         res.statusCode === 200 &&
-        res.headers['content-type'].startsWith('image/')
+        res.headers['content-type']?.startsWith('image/')
       ) {
         return faviconUrl;
       } else return null;
@@ -93,7 +93,7 @@ export async function resolveOEmbed(url: string) {
     const iframe = parse(oembedResponse['html'])?.querySelector('iframe');
     const embedUrl = iframe?.attrs['src'];
 
-    return isValidUrl(embedUrl) ? embedUrl : null;
+    return embedUrl && isValidUrl(embedUrl) ? embedUrl : null;
   } catch (error) {
     console.error(error);
     return null;

@@ -56,7 +56,7 @@ export default class Twitter extends Generic {
     if (!isProfileImage) {
       if (!options.isProtected) {
         const username = new RegExp(URL_REGEX).exec(this.url)?.[1];
-        avatar = (await this.fetchProfile(username)).avatar;
+        avatar = (await this.fetchProfile(username || '')).avatar;
       }
       media = image ?? null;
     } else {
