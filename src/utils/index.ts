@@ -129,18 +129,6 @@ export function processRegexStrings(input: string): string | RegExp {
   else return input;
 }
 
-export const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS?.split(',').map(
-  (o) => processRegexStrings(o)
-) || [
-  'http://localhost:3000',
-  'http://localhost:4000',
-  'https://beta.chroniclehq.com',
-  'https://staging.chroniclehq.com',
-  'https://staging.h.chroniclehq.com',
-  'https://h.chroniclehq.com',
-  'https://studio.apollographql.com',
-];
-
 export function parseHeaderValue(input: string): Record<string, string[]> {
   const value: Record<string, string[]> = Object.fromEntries(
     input.split(';').map((v) => {
