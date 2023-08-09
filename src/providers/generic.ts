@@ -15,6 +15,7 @@ import {
   FRAME_ANCESTORS,
   X_FRAME_OPTIONS,
 } from '../utils/constants.js';
+import { URLMetadata } from '../types.js';
 
 export default class Generic {
   url: string;
@@ -94,12 +95,17 @@ export default class Generic {
 
       const favicon = raw['icon'] || raw['shortcut icon'] || faviconUrl;
 
-      const metadata = {
+      const metadata: URLMetadata = {
         title,
         description,
-        image: getRelativeAssetUrl(resolvedUrl, image),
-        favicon: getRelativeAssetUrl(resolvedUrl, favicon),
       };
+
+      if (!isEmpty(image)) {
+        metadata['image'] = getRelativeAssetUrl(resolvedUrl, image)!;
+      }
+      if (!isEmpty(favicon)) {
+        metadata['favicon'] = getRelativeAssetUrl(resolvedUrl, favicon)!;
+      }
 
       if (Generic.canEmbed(resolvedUrl, headers)) {
         metadata['iframe'] = resolvedUrl;
@@ -108,7 +114,7 @@ export default class Generic {
         if (oEmbedUrl) {
           const iframeUrl = await resolveOEmbed(oEmbedUrl);
           if (!isEmpty(iframeUrl)) {
-            metadata['iframe'] = iframeUrl;
+            metadata['iframe'] = iframeUrl!;
           }
         }
       }

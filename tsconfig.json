@@ -1,14 +1,17 @@
 {
   "compilerOptions": {
-    "rootDirs": ["src"],
-    "outDir": "dist",
-    "lib": ["es2020"],
-    "target": "es2020",
+    "target": "es2018",
     "module": "esnext",
-    "moduleResolution": "node16",
+    "lib": ["esnext"],
+    "moduleResolution": "Node16", // for esm imporss, eg, got
     "esModuleInterop": true,
-    "types": ["node"]
+    "strict": true,
+    "strictNullChecks": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "types": ["vitest/globals"]
   },
-  "exclude": ["node_modules"],
-  "include": ["./src/**/*.ts"]
+  "include": ["src"],
+  "exclude": ["node_modules"]
 }

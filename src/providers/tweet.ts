@@ -2,23 +2,24 @@ import { isEmpty } from 'lodash-es';
 import { extractMeta, getRelativeAssetUrl, probe } from '../utils/index.js';
 import Generic from './generic.js';
 import { IncomingHttpHeaders } from 'http';
-
-const URL_REGEX = /https?:\/\/twitter.com\/(\S+)\/(status)\/(\S+)$/g;
-const AVATAR_REGEX = /profile_images/;
+import { TweetMetadata } from '../types.js';
 
 type ResolveImageOptions = {
   resolvedUrl: string;
   isProtected: boolean;
 };
 
-export default class Twitter extends Generic {
+export default class Tweet extends Generic {
+  private static URL_REGEX = /https?:\/\/twitter.com\/(\S+)\/(status)\/(\S+)$/g;
+  private static AVATAR_REGEX = /profile_images/;
+
   constructor(url: string) {
     console.log(`Fetching via twitter`);
     super(url);
   }
 
   static isMatch(url: string) {
-    return new RegExp(URL_REGEX).test(url);
+    return new RegExp(Tweet.URL_REGEX).test(url);
   }
 
   static canEmbed(url: string, headers: IncomingHttpHeaders): boolean {
@@ -34,7 +35,9 @@ export default class Twitter extends Generic {
         let { property, content } = metaTags[k];
         property && (raw[property] = content);
       }
-      const isProfileImage = new RegExp(AVATAR_REGEX).test(raw['og:image']);
+      const isProfileImage = new RegExp(Tweet.AVATAR_REGEX).test(
+        raw['og:image']
+      );
       if (isProfileImage) {
         return { avatar: raw['og:image'] };
       } else {
@@ -48,15 +51,15 @@ export default class Twitter extends Generic {
 
   async resolveImages(raw: any, options: ResolveImageOptions) {
     const image = raw['og:image'] || raw['twitter:image'] || raw['image_src'];
-    const isProfileImage = new RegExp(AVATAR_REGEX).test(image);
+    const isProfileImage = new RegExp(Tweet.AVATAR_REGEX).test(image);
 
     let avatar = null;
     let media = null;
 
     if (!isProfileImage) {
       if (!options.isProtected) {
-        const username = new RegExp(URL_REGEX).exec(this.url)?.[1];
-        avatar = (await this.fetchProfile(username)).avatar;
+        const username = new RegExp(Tweet.URL_REGEX).exec(this.url)?.[1];
+        avatar = username ? (await this.fetchProfile(username))?.avatar : '';
       }
       media = image ?? null;
     } else {
@@ -99,7 +102,7 @@ export default class Twitter extends Generic {
 
       const favicon = raw['icon'] || raw['shortcut icon'] || null;
 
-      const username = new RegExp(URL_REGEX).exec(this.url)?.[1];
+      const username = new RegExp(Tweet.URL_REGEX).exec(this.url)?.[1];
       const isProtected: boolean =
         title === 'Tweet / Twitter' && isEmpty(description);
 
@@ -118,7 +121,7 @@ export default class Twitter extends Generic {
         isProtected,
       };
 
-      return metadata;
+      return metadata as TweetMetadata;
     } catch (error) {
       console.error(error);
       return {};
